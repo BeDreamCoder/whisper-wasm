@@ -38,7 +38,6 @@ import (
 	"github.com/ethereum/whisper-wasm/common/bitutil"
 	"github.com/ethereum/whisper-wasm/crypto"
 	"github.com/ethereum/whisper-wasm/crypto/ecies"
-	"github.com/ethereum/whisper-wasm/metrics"
 	"github.com/ethereum/whisper-wasm/rlp"
 	"github.com/golang/snappy"
 	"golang.org/x/crypto/sha3"
@@ -594,9 +593,9 @@ func (rw *rlpxFrameRW) WriteMsg(msg Msg) error {
 		msg.Size = uint32(len(payload))
 	}
 	msg.meterSize = msg.Size
-	if metrics.Enabled && msg.meterCap.Name != "" { // don't meter non-subprotocol messages
-		metrics.GetOrRegisterMeter(fmt.Sprintf("%s/%s/%d/%#02x", MetricsOutboundTraffic, msg.meterCap.Name, msg.meterCap.Version, msg.meterCode), nil).Mark(int64(msg.meterSize))
-	}
+	//if metrics.Enabled && msg.meterCap.Name != "" { // don't meter non-subprotocol messages
+	//	metrics.GetOrRegisterMeter(fmt.Sprintf("%s/%s/%d/%#02x", MetricsOutboundTraffic, msg.meterCap.Name, msg.meterCap.Version, msg.meterCode), nil).Mark(int64(msg.meterSize))
+	//}
 	// write header
 	headbuf := make([]byte, 32)
 	fsize := uint32(len(ptype)) + msg.Size

@@ -28,7 +28,6 @@ import (
 	"github.com/ethereum/whisper-wasm/common/mclock"
 	"github.com/ethereum/whisper-wasm/event"
 	"github.com/ethereum/whisper-wasm/log"
-	"github.com/ethereum/whisper-wasm/metrics"
 	"github.com/ethereum/whisper-wasm/p2p/enode"
 	"github.com/ethereum/whisper-wasm/p2p/enr"
 	"github.com/ethereum/whisper-wasm/rlp"
@@ -301,9 +300,9 @@ func (p *Peer) handle(msg Msg) error {
 		if err != nil {
 			return fmt.Errorf("msg code out of range: %v", msg.Code)
 		}
-		if metrics.Enabled {
-			metrics.GetOrRegisterMeter(fmt.Sprintf("%s/%s/%d/%#02x", MetricsInboundTraffic, proto.Name, proto.Version, msg.Code-proto.offset), nil).Mark(int64(msg.meterSize))
-		}
+		//if metrics.Enabled {
+		//	metrics.GetOrRegisterMeter(fmt.Sprintf("%s/%s/%d/%#02x", MetricsInboundTraffic, proto.Name, proto.Version, msg.Code-proto.offset), nil).Mark(int64(msg.meterSize))
+		//}
 		select {
 		case proto.in <- msg:
 			return nil
