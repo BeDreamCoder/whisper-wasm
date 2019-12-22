@@ -33,7 +33,7 @@ import (
 	"github.com/ethereum/whisper-wasm/p2p"
 	"github.com/ethereum/whisper-wasm/rlp"
 	"github.com/ethereum/whisper-wasm/rpc"
-	"github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/pingcap/goleveldb/leveldb/errors"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/sync/syncmap"
 )

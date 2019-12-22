@@ -26,9 +26,9 @@ import (
 	"github.com/ethereum/whisper-wasm/log"
 	"github.com/ethereum/whisper-wasm/rlp"
 	whisper "github.com/ethereum/whisper-wasm/whisper/whisperv6"
-	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/opt"
-	"github.com/syndtr/goleveldb/leveldb/util"
+	"github.com/pingcap/goleveldb/leveldb"
+	"github.com/pingcap/goleveldb/leveldb/opt"
+	"github.com/pingcap/goleveldb/leveldb/util"
 )
 
 // WMailServer represents the state data of the mailserver.
