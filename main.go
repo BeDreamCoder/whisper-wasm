@@ -37,13 +37,11 @@ import (
 
 	"github.com/ethereum/whisper-wasm/common"
 	"github.com/ethereum/whisper-wasm/common/hexutil"
-	"github.com/ethereum/whisper-wasm/console"
 	"github.com/ethereum/whisper-wasm/crypto"
 	"github.com/ethereum/whisper-wasm/log"
 	"github.com/ethereum/whisper-wasm/p2p"
 	"github.com/ethereum/whisper-wasm/p2p/enode"
 	"github.com/ethereum/whisper-wasm/p2p/nat"
-	"github.com/ethereum/whisper-wasm/utils"
 	"github.com/ethereum/whisper-wasm/whisper/mailserver"
 	whisper "github.com/ethereum/whisper-wasm/whisper/whisperv6"
 	"golang.org/x/crypto/pbkdf2"
@@ -121,7 +119,7 @@ func processArgs() {
 		var err error
 		nodeid, err = crypto.LoadECDSA(*argIDFile)
 		if err != nil {
-			utils.Fatalf("Failed to load file [%s]: %s.", *argIDFile, err)
+			common.Fatalf("Failed to load file [%s]: %s.", *argIDFile, err)
 		}
 	}
 
@@ -135,7 +133,7 @@ func processArgs() {
 	if len(*argTopic) > 0 {
 		x, err := hex.DecodeString(*argTopic)
 		if err != nil {
-			utils.Fatalf("Failed to parse the topic: %s", err)
+			common.Fatalf("Failed to parse the topic: %s", err)
 		}
 		topic = whisper.BytesToTopic(x)
 	}
@@ -143,16 +141,16 @@ func processArgs() {
 	if *asymmetricMode && len(*argPub) > 0 {
 		var err error
 		if pub, err = crypto.UnmarshalPubkey(common.FromHex(*argPub)); err != nil {
-			utils.Fatalf("invalid public key")
+			common.Fatalf("invalid public key")
 		}
 	}
 
 	if len(*argSaveDir) > 0 {
 		if _, err := os.Stat(*argSaveDir); os.IsNotExist(err) {
-			utils.Fatalf("Download directory '%s' does not exist", *argSaveDir)
+			common.Fatalf("Download directory '%s' does not exist", *argSaveDir)
 		}
 	} else if *fileExMode {
-		utils.Fatalf("Parameter 'savedir' is mandatory for file exchange mode")
+		common.Fatalf("Parameter 'savedir' is mandatory for file exchange mode")
 	}
 
 	if *echoMode {
@@ -182,7 +180,7 @@ func initialize() {
 	if *generateKey {
 		key, err := crypto.GenerateKey()
 		if err != nil {
-			utils.Fatalf("Failed to generate private key: %s", err)
+			common.Fatalf("Failed to generate private key: %s", err)
 		}
 		k := hex.EncodeToString(crypto.FromECDSA(key))
 		fmt.Printf("Random private key: %s \n", k)
@@ -210,9 +208,9 @@ func initialize() {
 
 	if *mailServerMode {
 		if len(msPassword) == 0 {
-			msPassword, err = console.Stdin.PromptPassword("Please enter the Mail Server password: ")
+			msPassword, err = common.Stdin.PromptPassword("Please enter the Mail Server password: ")
 			if err != nil {
-				utils.Fatalf("Failed to read Mail Server password: %s", err)
+				common.Fatalf("Failed to read Mail Server password: %s", err)
 			}
 		}
 	}
@@ -227,36 +225,36 @@ func initialize() {
 	if *argPoW != whisper.DefaultMinimumPoW {
 		err := shh.SetMinimumPoW(*argPoW)
 		if err != nil {
-			utils.Fatalf("Failed to set PoW: %s", err)
+			common.Fatalf("Failed to set PoW: %s", err)
 		}
 	}
 
 	if uint32(*argMaxSize) != whisper.DefaultMaxMessageSize {
 		err := shh.SetMaxMessageSize(uint32(*argMaxSize))
 		if err != nil {
-			utils.Fatalf("Failed to set max message size: %s", err)
+			common.Fatalf("Failed to set max message size: %s", err)
 		}
 	}
 
 	asymKeyID, err = shh.NewKeyPair()
 	if err != nil {
-		utils.Fatalf("Failed to generate a new key pair: %s", err)
+		common.Fatalf("Failed to generate a new key pair: %s", err)
 	}
 
 	asymKey, err = shh.GetPrivateKey(asymKeyID)
 	if err != nil {
-		utils.Fatalf("Failed to retrieve a new key pair: %s", err)
+		common.Fatalf("Failed to retrieve a new key pair: %s", err)
 	}
 
 	if nodeid == nil {
 		tmpID, err := shh.NewKeyPair()
 		if err != nil {
-			utils.Fatalf("Failed to generate a new key pair: %s", err)
+			common.Fatalf("Failed to generate a new key pair: %s", err)
 		}
 
 		nodeid, err = shh.GetPrivateKey(tmpID)
 		if err != nil {
-			utils.Fatalf("Failed to retrieve a new key pair: %s", err)
+			common.Fatalf("Failed to retrieve a new key pair: %s", err)
 		}
 	}
 
@@ -267,13 +265,13 @@ func initialize() {
 
 	_, err = crand.Read(entropy[:])
 	if err != nil {
-		utils.Fatalf("crypto/rand failed: %s", err)
+		common.Fatalf("crypto/rand failed: %s", err)
 	}
 
 	if *mailServerMode {
 		shh.RegisterServer(&mailServer)
 		if err := mailServer.Init(shh, *argDBPath, msPassword, *argServerPoW); err != nil {
-			utils.Fatalf("Failed to init MailServer: %s", err)
+			common.Fatalf("Failed to init MailServer: %s", err)
 		}
 	}
 
@@ -336,10 +334,10 @@ func configureNode() {
 			s := scanLine("Please enter the peer's public key: ")
 			b := common.FromHex(s)
 			if b == nil {
-				utils.Fatalf("Error: can not convert hexadecimal string")
+				common.Fatalf("Error: can not convert hexadecimal string")
 			}
 			if pub, err = crypto.UnmarshalPubkey(b); err != nil {
-				utils.Fatalf("Error: invalid peer public key")
+				common.Fatalf("Error: invalid peer public key")
 			}
 		}
 	}
@@ -347,28 +345,28 @@ func configureNode() {
 	if *requestMail {
 		p2pAccept = true
 		if len(msPassword) == 0 {
-			msPassword, err = console.Stdin.PromptPassword("Please enter the Mail Server password: ")
+			msPassword, err = common.Stdin.PromptPassword("Please enter the Mail Server password: ")
 			if err != nil {
-				utils.Fatalf("Failed to read Mail Server password: %s", err)
+				common.Fatalf("Failed to read Mail Server password: %s", err)
 			}
 		}
 	}
 
 	if !*asymmetricMode && !*forwarderMode {
 		if len(symPass) == 0 {
-			symPass, err = console.Stdin.PromptPassword("Please enter the password for symmetric encryption: ")
+			symPass, err = common.Stdin.PromptPassword("Please enter the password for symmetric encryption: ")
 			if err != nil {
-				utils.Fatalf("Failed to read password: %v", err)
+				common.Fatalf("Failed to read password: %v", err)
 			}
 		}
 
 		symKeyID, err := shh.AddSymKeyFromPassword(symPass)
 		if err != nil {
-			utils.Fatalf("Failed to create symmetric key: %s", err)
+			common.Fatalf("Failed to create symmetric key: %s", err)
 		}
 		symKey, err = shh.GetSymKey(symKeyID)
 		if err != nil {
-			utils.Fatalf("Failed to save symmetric key: %s", err)
+			common.Fatalf("Failed to save symmetric key: %s", err)
 		}
 		if len(*argTopic) == 0 {
 			generateTopic([]byte(symPass))
@@ -390,7 +388,7 @@ func configureNode() {
 	}
 	symFilterID, err = shh.Subscribe(&symFilter)
 	if err != nil {
-		utils.Fatalf("Failed to install filter: %s", err)
+		common.Fatalf("Failed to install filter: %s", err)
 	}
 
 	asymFilter := whisper.Filter{
@@ -400,7 +398,7 @@ func configureNode() {
 	}
 	asymFilterID, err = shh.Subscribe(&asymFilter)
 	if err != nil {
-		utils.Fatalf("Failed to install filter: %s", err)
+		common.Fatalf("Failed to install filter: %s", err)
 	}
 }
 
@@ -420,7 +418,7 @@ func waitForConnection(timeout bool) {
 		if timeout {
 			cnt++
 			if cnt > 1000 {
-				utils.Fatalf("Timeout expired, failed to connect")
+				common.Fatalf("Timeout expired, failed to connect")
 			}
 		}
 	}
@@ -536,7 +534,7 @@ func scanLine(prompt string) string {
 	}
 	txt, err := input.ReadString('\n')
 	if err != nil {
-		utils.Fatalf("input error: %s", err)
+		common.Fatalf("input error: %s", err)
 	}
 	txt = strings.TrimRight(txt, "\n\r")
 	return txt
@@ -551,7 +549,7 @@ func scanUint(prompt string) uint32 {
 	s := scanLine(prompt)
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		utils.Fatalf("Fail to parse the lower time limit: %s", err)
+		common.Fatalf("Fail to parse the lower time limit: %s", err)
 	}
 	return uint32(i)
 }
@@ -570,7 +568,7 @@ func sendMsg(payload []byte) common.Hash {
 
 	msg, err := whisper.NewSentMessage(&params)
 	if err != nil {
-		utils.Fatalf("failed to create new message: %s", err)
+		common.Fatalf("failed to create new message: %s", err)
 	}
 
 	envelope, err := msg.Wrap(&params)
@@ -591,12 +589,12 @@ func sendMsg(payload []byte) common.Hash {
 func messageLoop() {
 	sf := shh.GetFilter(symFilterID)
 	if sf == nil {
-		utils.Fatalf("symmetric filter is not installed")
+		common.Fatalf("symmetric filter is not installed")
 	}
 
 	af := shh.GetFilter(asymFilterID)
 	if af == nil {
-		utils.Fatalf("asymmetric filter is not installed")
+		common.Fatalf("asymmetric filter is not installed")
 	}
 
 	ticker := time.NewTicker(time.Millisecond * 50)
@@ -685,11 +683,11 @@ func requestExpiredMessagesLoop() {
 
 	keyID, err := shh.AddSymKeyFromPassword(msPassword)
 	if err != nil {
-		utils.Fatalf("Failed to create symmetric key for mail request: %s", err)
+		common.Fatalf("Failed to create symmetric key for mail request: %s", err)
 	}
 	key, err = shh.GetSymKey(keyID)
 	if err != nil {
-		utils.Fatalf("Failed to save symmetric key for mail request: %s", err)
+		common.Fatalf("Failed to save symmetric key for mail request: %s", err)
 	}
 	peerID = extractIDFromEnode(*argEnode)
 	shh.AllowP2PMessagesFromPeer(peerID)
@@ -732,16 +730,16 @@ func requestExpiredMessagesLoop() {
 
 		msg, err := whisper.NewSentMessage(&params)
 		if err != nil {
-			utils.Fatalf("failed to create new message: %s", err)
+			common.Fatalf("failed to create new message: %s", err)
 		}
 		env, err := msg.Wrap(&params)
 		if err != nil {
-			utils.Fatalf("Wrap failed: %s", err)
+			common.Fatalf("Wrap failed: %s", err)
 		}
 
 		err = shh.RequestHistoricMessages(peerID, env)
 		if err != nil {
-			utils.Fatalf("Failed to send P2P message: %s", err)
+			common.Fatalf("Failed to send P2P message: %s", err)
 		}
 
 		time.Sleep(time.Second * 5)
@@ -751,7 +749,7 @@ func requestExpiredMessagesLoop() {
 func extractIDFromEnode(s string) []byte {
 	n, err := enode.Parse(enode.ValidSchemes, s)
 	if err != nil {
-		utils.Fatalf("Failed to parse node: %s", err)
+		common.Fatalf("Failed to parse node: %s", err)
 	}
 	return n.ID().Bytes()
 }
