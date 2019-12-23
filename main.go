@@ -72,8 +72,6 @@ var (
 	asymKeyID    string
 	asymFilterID string
 	symFilterID  string
-	symPass      string
-	msPassword   string
 )
 
 // cmd arguments
@@ -96,11 +94,14 @@ var (
 	argPoW       = flag.Float64("pow", whisper.DefaultMinimumPoW, "PoW for normal messages in float format (e.g. 2.7)")
 	argServerPoW = flag.Float64("mspow", whisper.DefaultMinimumPoW, "PoW requirement for Mail Server request")
 
-	argIP      = flag.String("ip", "", "IP address and port of this node (e.g. 127.0.0.1:30303)")
+	symPass    = *flag.String("sympass", "wwww", "The password for symmetric encryption")
+	msPassword = *flag.String("mspassword", "wwww", "The Mail Server password")
+	argIP      = flag.String("ip", "0.0.0.0:30303", "IP address and port of this node (e.g. 127.0.0.1:30303)")
 	argPub     = flag.String("pub", "", "public key for asymmetric encryption")
 	argDBPath  = flag.String("dbpath", "", "path to the server's DB directory")
+	argID      = flag.String("id", "7425d2029fb9564c3862aefc5f24c10f508902269cac257580722cb6acca0a56", "node id (private key)")
 	argIDFile  = flag.String("idfile", "", "file name with node id (private key)")
-	argEnode   = flag.String("boot", "", "bootstrap node you want to connect to (e.g. enode://e454......08d50@52.176.211.200:16428)")
+	argEnode   = flag.String("boot", "enode://98bb759bfcdcbea96c9f50592ef410d169a66d4f18f11c7ab85b26b39ee510929f2a3fca545ad81fb6ef02f91ae8e75b784ee132d6aacea0dcb283c08adb6724@127.0.0.1:30303", "bootstrap node you want to connect to (e.g. enode://e454......08d50@52.176.211.200:16428)")
 	argTopic   = flag.String("topic", "", "topic in hexadecimal format (e.g. 70a4beef)")
 	argSaveDir = flag.String("savedir", "", "directory where all incoming messages will be saved as files")
 )
@@ -120,6 +121,12 @@ func processArgs() {
 		nodeid, err = crypto.LoadECDSA(*argIDFile)
 		if err != nil {
 			common.Fatalf("Failed to load file [%s]: %s.", *argIDFile, err)
+		}
+	} else if len(*argID) > 0 {
+		var err error
+		nodeid, err = crypto.HexToECDSA(*argID)
+		if err != nil {
+			common.Fatalf("Failed to parses private key [%s]: %s.", *argID, err)
 		}
 	}
 
@@ -185,11 +192,6 @@ func initialize() {
 		k := hex.EncodeToString(crypto.FromECDSA(key))
 		fmt.Printf("Random private key: %s \n", k)
 		os.Exit(0)
-	}
-
-	if *testMode {
-		symPass = "wwww" // ascii code: 0x77777777
-		msPassword = "wwww"
 	}
 
 	if *bootstrapMode {
