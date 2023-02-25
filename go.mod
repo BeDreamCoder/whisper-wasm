@@ -16,12 +16,10 @@ require (
 	github.com/peterh/liner v1.1.0
 	github.com/pingcap/goleveldb v0.0.0-20191031114657-7683883cfb36
 	github.com/rs/cors v1.7.0
-	github.com/shurcooL/go v0.0.0-20191216061654-b114cc39af9f // indirect
-	github.com/shurcooL/go-goon v0.0.0-20170922171312-37c2f522c041 // indirect
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20190912141932-bc967efca4b8
+	golang.org/x/sys v0.1.0
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
 )
